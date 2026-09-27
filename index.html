@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#111412" />
+    <meta
+      name="description"
+      content="Seu arquivo pessoal de jogos. Agora, por algum motivo, um complexo subterrâneo em primeira pessoa. Sério no registro. Questionável no procedimento."
+    />
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+    <title>RELOGLAB — Departamento de memória jogável</title>
+  </head>
+  <body>
+    <main id="installation" aria-label="Instalação 3D do RelogLab">
+      <canvas
+        id="world"
+        tabindex="0"
+        aria-label="Mundo em primeira pessoa. WASD move, mouse olha, E opera terminais. Setas também movem e viram. Escape libera o mouse."
+      ></canvas>
+      <div id="boot" role="status">RELOGLAB <span>INICIALIZANDO A INSTALAÇÃO…</span></div>
+      <header id="telemetry" aria-hidden="true">
+        <div class="wordmark">
+          <b>RL<span>↳</span></b>
+          <div>RELOGLAB<small>DEPTO. DE MEMÓRIA JOGÁVEL</small></div>
+        </div>
+        <div class="sector">
+          <span class="live-dot"></span> <span id="sector-name">00 / RECEPÇÃO</span
+          ><small>INSTALAÇÃO LOCAL · SUBSOLO 01</small>
+        </div>
+      </header>
+      <div id="crosshair" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+      <div id="interaction" role="status" aria-live="polite"></div>
+      <div id="movement-hint">
+        CLIQUE NO AMBIENTE PARA ENTRAR
+        <span>WASD mover · mouse olhar · E operar · Esc liberar</span>
+      </div>
+      <footer id="hud" aria-label="Instrumentos de exploração">
+        <div class="hud-id">
+          <span class="id-icon">▤</span>
+          <div>
+            <small>CREDENCIAL</small><strong id="credential">VISITANTE</strong
+            ><span id="member-no">ACESSO NÃO HOMOLOGADO</span>
+          </div>
+        </div>
+        <div class="hud-objective">
+          <small>PROCEDIMENTO ATUAL</small
+          ><strong id="objective">Apresente-se ao terminal da recepção.</strong
+          ><span id="procedure">Nenhum formulário sai deste navegador.</span>
+        </div>
+        <div class="hud-number"><small>REGISTROS</small><strong id="log-count">000</strong></div>
+        <div class="hud-sync">
+          <small>SINC. GERAL</small><strong>74<span>%</span></strong>
+          <div class="sync-bar"><i></i></div>
+        </div>
+        <canvas
+          id="survey"
+          width="172"
+          height="112"
+          aria-label="Mapa da instalação com a sua posição"
+        ></canvas>
+      </footer>
+      <div id="touch-controls" aria-label="Controles de movimento">
+        <div id="stick" aria-label="Arraste para mover"><i></i></div>
+        <div class="touch-actions">
+          <button id="touch-exit" aria-label="Sair do terminal">VOLTAR</button
+          ><button id="touch-use" aria-label="Operar objeto">E</button>
+        </div>
+        <span id="touch-hint">Arraste à direita para olhar</span>
+      </div>
+      <input
+        id="terminal-input"
+        aria-label="Campo do terminal no mundo"
+        autocomplete="off"
+        autocapitalize="off"
+        spellcheck="false"
+      />
+      <input id="import-file" type="file" accept=".json,.txt,application/json" hidden />
+      <div id="screen-reader" class="sr-only" aria-live="polite"></div>
+      <div id="fatal" hidden>
+        <h1>Não foi possível acender os monitores.</h1>
+        <p id="fatal-message"></p>
+        <button onclick="location.reload()">TENTAR NOVAMENTE</button>
+      </div>
+      <noscript
+        >O departamento exige JavaScript para abrir as portas. Ative JavaScript e
+        recarregue.</noscript
+      >
+    </main>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
