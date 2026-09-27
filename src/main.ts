@@ -383,7 +383,8 @@ function updateUI() {
   drawSurvey();
 }
 function animate(now: number) {
-  const dt = Math.min(0.05, (now - clock) / 1000);
+  const elapsed = Math.max(0, (now - clock) / 1000);
+  const dt = Math.min(0.05, elapsed);
   clock = now;
   time += dt;
   if (operating) {
@@ -433,12 +434,12 @@ function animate(now: number) {
   }
   world.update(dt, time);
   registrar.update(dt, bob, !operating, archive.data.preferences.reducedMotion);
-  syncAccumulator += dt;
+  syncAccumulator += elapsed;
   if (syncAccumulator > 0.15) {
     terminals.find((t) => t.kind === 'sync')!.tick(syncAccumulator);
     syncAccumulator = 0;
   }
-  uiAccumulator += dt;
+  uiAccumulator += elapsed;
   if (uiAccumulator > 0.1) {
     updateUI();
     uiAccumulator = 0;
