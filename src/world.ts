@@ -79,6 +79,7 @@ export class Installation {
   batchedDraws = 0;
   scene = new T.Scene();
   colliders: Rect[] = [];
+  private wallCoverage = new Map<string, [number, number][]>();
   mounts: Mount[] = [];
   crates: T.Group[] = [];
   crateMeshes: T.Object3D[] = [];
@@ -143,14 +144,14 @@ export class Installation {
       '#18221b',
     );
     this.gate.add(gateSign);
-    gateSign.position.z = 0.2;
-    this.plaque(['RELOGLAB'], 10, 1.25, 0, 4.42, 8.3, 0, '#efba6a', '#273128', true);
+    gateSign.position.z = 0.255;
+    this.plaque(['RELOGLAB'], 10, 1.1, 0, 4.42, 8.3, 0, '#efba6a', '#273128', true);
     this.plaque(
       ['DEPARTAMENTO DE MEMÓRIA JOGÁVEL', 'SÉRIO NO REGISTRO. QUESTIONÁVEL NO PROCEDIMENTO.'],
       9,
-      0.68,
+      0.62,
       0,
-      3.62,
+      3.49,
       8.34,
       0,
       '#b8c0ac',
@@ -374,60 +375,58 @@ export class Installation {
       const fixed = horizontal
         ? z + (side === 'n' ? -d / 2 : d / 2)
         : x + (side === 'w' ? -w / 2 : w / 2);
+      const key = `${horizontal ? 'z' : 'x'}:${fixed}`;
+      const previous = this.wallCoverage.get(key) || [];
+      let owned: [number, number][] = [[mid - length / 2, mid + length / 2]];
+      for (const [a, b] of previous) {
+        owned = owned.flatMap(([from, to]): [number, number][] => {
+          if (b <= from || a >= to) return [[from, to]];
+          const remaining: [number, number][] = [];
+          if (a > from) remaining.push([from, a]);
+          if (b < to) remaining.push([b, to]);
+          return remaining;
+        });
+      }
+      this.wallCoverage.set(key, [...previous, [mid - length / 2, mid + length / 2]]);
+      // Adjacent rooms share one physical wall, including its trim and lintels.
+      const wallBox = (
+        a: number,
+        b: number,
+        height: number,
+        centerY: number,
+        depth: number,
+        material: string,
+        solid = false,
+      ) => {
+        for (const [from, to] of owned) {
+          const left = Math.max(a, from),
+            right = Math.min(b, to);
+          if (right - left < 0.01) continue;
+          this.box(
+            horizontal ? right - left : depth,
+            height,
+            horizontal ? depth : right - left,
+            horizontal ? (left + right) / 2 : fixed,
+            centerY,
+            horizontal ? fixed : (left + right) / 2,
+            material,
+            solid,
+          );
+        }
+      };
       let start = mid - length / 2;
       const openings = [...(doors[side] || [])].sort((a, b) => a - b);
       const segment = (a: number, b: number) => {
         if (b - a < 0.01) return;
-        this.box(
-          horizontal ? b - a : 0.42,
-          5,
-          horizontal ? 0.42 : b - a,
-          horizontal ? (a + b) / 2 : fixed,
-          2.5,
-          horizontal ? fixed : (a + b) / 2,
-          'concrete',
-          true,
-        );
-        this.box(
-          horizontal ? b - a : 0.48,
-          0.6,
-          horizontal ? 0.48 : b - a,
-          horizontal ? (a + b) / 2 : fixed,
-          0.3,
-          horizontal ? fixed : (a + b) / 2,
-          'dark',
-        );
+        wallBox(a, b, 5, 2.5, 0.42, 'concrete', true);
+        wallBox(a, b, 0.6, 0.3, 0.48, 'dark');
       };
       openings.forEach((center) => {
         segment(start, center - 2);
-        this.box(
-          horizontal ? 4 : 0.42,
-          1.3,
-          horizontal ? 0.42 : 4,
-          horizontal ? center : fixed,
-          4.35,
-          horizontal ? fixed : center,
-          'concrete',
-        );
+        wallBox(center - 2, center + 2, 1.3, 4.35, 0.42, 'concrete');
         for (const offset of [-2, 2])
-          this.box(
-            horizontal ? 0.22 : 0.58,
-            3.8,
-            horizontal ? 0.58 : 0.22,
-            horizontal ? center + offset : fixed,
-            1.9,
-            horizontal ? fixed : center + offset,
-            'metal',
-          );
-        this.box(
-          horizontal ? 4.3 : 0.55,
-          0.18,
-          horizontal ? 0.55 : 4.3,
-          horizontal ? center : fixed,
-          3.78,
-          horizontal ? fixed : center,
-          'amber',
-        );
+          wallBox(center + offset - 0.11, center + offset + 0.11, 3.8, 1.9, 0.58, 'metal');
+        wallBox(center - 2.15, center + 2.15, 0.18, 3.78, 0.55, 'amber');
         start = center + 2;
       });
       segment(start, mid + length / 2);
@@ -448,17 +447,18 @@ export class Installation {
     const light = new T.PointLight(r.id === 'profile' ? '#b6d4ba' : '#f0c486', 26, 17, 2);
     light.position.set(x, 4.3, z);
     this.scene.add(light);
-    this.plaque(
-      [r.number + ' / ' + r.name],
-      Math.min(w - 2, 8),
-      0.68,
-      x,
-      4.2,
-      z - d / 2 + 0.3,
-      0,
-      '#c9cfb8',
-      '#2d3a2e',
-    );
+    if (r.id !== 'reception')
+      this.plaque(
+        [r.number + ' / ' + r.name],
+        Math.min(w - 2, 8),
+        0.5,
+        x,
+        4.65,
+        z - d / 2 + 0.3,
+        0,
+        '#c9cfb8',
+        '#2d3a2e',
+      );
   }
   canvasPlane(
     c: HTMLCanvasElement,

@@ -32,7 +32,7 @@ export class Registrar {
       return mesh;
     };
     box(0.3, 0.19, 0.32, 0, 0.055, 0, 'body');
-    box(0.32, 0.06, 0.35, 0, 0.13, -0.015, 'dark');
+    box(0.32, 0.06, 0.366, 0, 0.13, -0.015, 'dark');
     box(0.26, 0.1, 0.1, 0, 0.05, -0.22, 'dark');
     box(0.21, 0.06, 0.11, 0, 0.06, -0.28, 'amber');
     box(0.1, 0.24, 0.14, 0.015, -0.145, 0.045, 'dark');
@@ -45,6 +45,7 @@ export class Registrar {
       box(0.007, 0.021, 0.004, -0.1 + i * 0.016, -0.018, 0.2, i % 3 === 0 ? 'paper' : 'dark');
     for (const x of [-0.13, 0.13])
       for (const y of [0, 0.12]) box(0.012, 0.012, 0.004, x, y, 0.168, 'paper');
+    box(0.246, 0.106, 0.012, 0, 0.065, 0.178, 'dark');
     this.display.width = 512;
     this.display.height = 168;
     this.texture = new T.CanvasTexture(this.display);
@@ -54,7 +55,7 @@ export class Registrar {
       new T.PlaneGeometry(0.228, 0.09),
       new T.MeshBasicMaterial({ map: this.texture, toneMapped: false }),
     );
-    screen.position.set(0, 0.065, 0.162);
+    screen.position.set(0, 0.065, 0.19);
     this.group.add(screen);
     camera.add(this.group);
     scene.add(camera);
