@@ -12,7 +12,12 @@ export default defineConfig({
     viewport: { width: 1440, height: 900 },
     screenshot: 'only-on-failure',
     trace: 'off',
-    launchOptions: { args: ['--enable-unsafe-swiftshader'] },
+    launchOptions: {
+      args: [
+        '--enable-unsafe-swiftshader',
+        ...(process.env.PLAYWRIGHT_SOFTWARE ? ['--use-angle=swiftshader'] : []),
+      ],
+    },
   },
   webServer: {
     command: 'npm run dev -- --port 4173',

@@ -6,6 +6,7 @@ export class RetroRenderer {
   camera = new T.OrthographicCamera(-1, 1, 1, -1, 0, 1);
   material: T.ShaderMaterial;
   inspecting = false;
+  softwareRendering: boolean;
   constructor(canvas: HTMLCanvasElement) {
     this.renderer = new T.WebGLRenderer({
       canvas,
@@ -13,6 +14,10 @@ export class RetroRenderer {
       powerPreference: 'high-performance',
     });
     this.renderer.setPixelRatio(1);
+    const gl = this.renderer.getContext();
+    const info = gl.getExtension('WEBGL_debug_renderer_info');
+    const device = String(gl.getParameter(info ? info.UNMASKED_RENDERER_WEBGL : gl.RENDERER));
+    this.softwareRendering = /swiftshader|llvmpipe|softpipe|software/i.test(device);
     this.renderer.outputColorSpace = T.SRGBColorSpace;
     this.target = new T.WebGLRenderTarget(1, 1, { depthBuffer: true });
     this.material = new T.ShaderMaterial({
@@ -44,8 +49,21 @@ export class RetroRenderer {
   resize() {
     const w = innerWidth,
       h = innerHeight;
-    this.renderer.setSize(w, h, false);
-    const ratio = Math.min(1, (this.inspecting ? 1440 : 960) / w, 900 / h);
+    const widthLimit = this.softwareRendering
+      ? this.inspecting
+        ? 960
+        : 480
+      : this.inspecting
+        ? 1440
+        : 960;
+    const ratio = Math.min(1, widthLimit / w, 900 / h);
+    // The final shader must use the same reduced buffer on a software device;
+    // reducing only the scene target still rasterizes the whole display twice.
+    this.renderer.setSize(
+      Math.round(w * (this.softwareRendering ? ratio : 1)),
+      Math.round(h * (this.softwareRendering ? ratio : 1)),
+      false,
+    );
     this.target.setSize(Math.round(w * ratio), Math.round(h * ratio));
     this.target.texture.magFilter = T.NearestFilter;
     this.material.uniforms.resolution.value.set(w * ratio, h * ratio);
