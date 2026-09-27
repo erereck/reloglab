@@ -180,7 +180,7 @@ export class Installation {
         'CELULAR: JOYSTICK + ARRASTE',
         'SETAS: MOVER E VIRAR',
         '',
-        'NÃO USE UMA SENHA REAL.',
+        'NÃO REUTILIZE SENHAS PESSOAIS.',
         'A CONTA É UMA FICÇÃO LOCAL.',
       ],
       3.2,
@@ -802,16 +802,16 @@ export class Installation {
   furnishFAQ() {
     const faq = [
       [
-        '01 / A CONTA É REAL?',
-        'É uma credencial fictícia neste navegador.',
+        '01 / COMO FUNCIONA A CREDENCIAL?',
+        'É uma credencial local, emitida neste navegador.',
         'Nada é enviado a um servidor.',
         'Exporte os registros para fazer backup.',
       ],
       [
         '02 / MINHA SENHA JÁ FOI USADA?',
         'A primeira senha será recusada.',
-        'É o procedimento, não uma consulta real.',
-        'Escolha outra senha. Não use uma real.',
+        'A disponibilidade é informada na recepção.',
+        'Escolha outra senha. Evite senhas pessoais.',
       ],
       [
         '03 / POR QUE UM TERRENO?',

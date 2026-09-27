@@ -156,7 +156,7 @@ export class Terminal {
         (
           {
             username: 'USUÁRIO / 3–18 CARACTERES',
-            password: 'SENHA FICTÍCIA',
+            password: 'SENHA',
             confirm: 'REPETIR A SENHA',
             search: 'PESQUISA POR NOME',
             note: 'OBSERVAÇÃO',
@@ -202,11 +202,7 @@ export class Terminal {
   paint() {
     this.targets = [];
     const names: Record<Station, [string, string, string]> = {
-      reception: [
-        'Admissão de membro',
-        '00 — RECEPÇÃO',
-        'Formulário 00-A / credencial fictícia de acesso',
-      ],
+      reception: ['Admissão de membro', '00 — RECEPÇÃO', 'Formulário 00-A / credencial de acesso'],
       catalog: [
         'Arquivo de títulos',
         '02 — CONSULTA',
@@ -326,19 +322,12 @@ export class Terminal {
     const registered = !!this.archive.data.account;
     const login = this.mode === 'login';
     this.field('NOME DE USUÁRIO / 3–18 CARACTERES', 'username', 40, 170, 944);
-    this.field(
-      'SENHA FICTÍCIA / MÍNIMO 4 CARACTERES',
-      'password',
-      40,
-      262,
-      login ? 944 : 453,
-      true,
-    );
-    if (!login) this.field('REPETIR A SENHA FICTÍCIA', 'confirm', 531, 262, 453, true);
+    this.field('SENHA / MÍNIMO 4 CARACTERES', 'password', 40, 262, login ? 944 : 453, true);
+    if (!login) this.field('REPETIR A SENHA', 'confirm', 531, 262, 453, true);
     this.wrap(
       login
-        ? 'Autenticação demonstrativa: qualquer senha fictícia de 4 caracteres permite retomar a sua credencial local.'
-        : 'O departamento verifica se a senha já foi utilizada. Não é tecnicamente possível; o procedimento será executado mesmo assim.',
+        ? 'Apresente o nome do membro e a senha para retomar sua credencial local.'
+        : 'A senha será submetida ao procedimento de disponibilidade. Aguarde a resposta da repartição.',
       40,
       365,
       944,
@@ -354,8 +343,7 @@ export class Terminal {
         const pw = this.fields.password;
         if (username.length < 3 || username.length > 18)
           return this.status('Nome inválido. O formulário aceita 3 a 18 caracteres.', true);
-        if (pw.length < 4)
-          return this.status('A senha fictícia deve conter pelo menos 4 caracteres.', true);
+        if (pw.length < 4) return this.status('A senha deve conter pelo menos 4 caracteres.', true);
         if (login) {
           if (!registered)
             return this.status('Nenhuma credencial local. Utilize emitir cadastro.', true);
@@ -380,7 +368,7 @@ export class Terminal {
           this.fields.password = '';
           this.fields.confirm = '';
           return this.status(
-            'ERRO 104: esta senha já está sendo usada por outro membro. Escolha outra senha fictícia e envie novamente.',
+            'ERRO 104: esta senha já está sendo usada por outro membro. Escolha outra senha e envie novamente.',
             true,
           );
         }
@@ -401,7 +389,7 @@ export class Terminal {
         this.fields.confirm = '';
         this.mode = 'login';
         this.status(
-          'Cadastro aceito. Por segurança, você não foi conectado. Digite uma senha fictícia e entre.',
+          'Cadastro aceito. A entrada exige uma nova apresentação da credencial. Digite a senha e entre.',
         );
       },
       true,
@@ -411,7 +399,13 @@ export class Terminal {
       this.message = '';
       this.paint();
     });
-    this.text('NÃO USE UMA SENHA REAL. NENHUMA SENHA É ARMAZENADA.', 40, 570, 19, PALETTE.amber);
+    this.text(
+      'NÃO REUTILIZE SENHAS PESSOAIS. SENHAS NÃO SÃO ARMAZENADAS.',
+      40,
+      570,
+      19,
+      PALETTE.amber,
+    );
     this.text('Dados no navegador. Sem servidor, sem conta online.', 40, 606, 17, PALETTE.muted);
   }
   catalog() {

@@ -288,6 +288,44 @@ test('o procedimento completo ocorre dentro do mundo e persiste', async ({ page 
   );
 });
 
+test('E devolve o controle da câmera ao sair do terminal', async ({ page }) => {
+  await page.goto('/');
+  await expect
+    .poll(async () => await page.evaluate(() => !!(window as any).__RELOGLAB__))
+    .toBe(true);
+  await route(page, [[-3.8, 14.4]]);
+  await face(page, -3.8, 10.4);
+  await page.keyboard.down('KeyE');
+  await expect.poll(async () => (await snapshot(page)).station).toBe('reception');
+  await page.keyboard.down('KeyE');
+  expect((await snapshot(page)).station).toBe('reception');
+  await page.keyboard.up('KeyE');
+  await page.waitForTimeout(600);
+  const field = (await targets(page)).find((t: any) => t.field === 'password');
+  await page.mouse.click(field.x, field.y);
+  await expect(page.locator('#terminal-input')).toHaveAttribute('aria-label', 'Senha');
+  await page.keyboard.type('teste');
+  expect((await snapshot(page)).station).toBe('reception');
+  await page.keyboard.press('Enter');
+  await page.keyboard.down('KeyE');
+  await expect.poll(async () => (await snapshot(page)).station).toBe(null);
+  await expect
+    .poll(async () => await page.evaluate(() => document.pointerLockElement?.id))
+    .toBe('world');
+  await page.keyboard.down('KeyE');
+  expect((await snapshot(page)).station).toBe(null);
+  await page.keyboard.up('KeyE');
+  await expect(page.locator('#world')).toBeFocused();
+  const before = await snapshot(page);
+  await page.mouse.move(240, 180);
+  await expect
+    .poll(async () => {
+      const after = await snapshot(page);
+      return Math.abs(after.yaw - before.yaw) + Math.abs(after.pitch - before.pitch);
+    })
+    .toBeGreaterThan(0.05);
+});
+
 test('celular: movimento por joystick, leitura e operação no terminal', async ({
   browser,
 }, info) => {

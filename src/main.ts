@@ -106,7 +106,7 @@ function enter(t: Terminal) {
   document.body.classList.add('operating');
   $('movement-hint').innerHTML = t.mobile
     ? 'TERMINAL EM OPERAÇÃO <span>toque nos campos para digitar · VOLTAR para levantar</span>'
-    : 'TERMINAL EM OPERAÇÃO <span>clique nos campos · Tab selecionar · Enter operar · Esc levantar</span>';
+    : 'TERMINAL EM OPERAÇÃO <span>clique nos campos · Tab selecionar · Enter operar · E / Esc levantar</span>';
   $('interaction').textContent = '';
   announce(
     t.canvas ? `${t.kind}: ${t.targets.map((x) => x.label).join('. ')}` : 'Terminal em operação.',
@@ -118,18 +118,24 @@ function finishInput() {
   input.blur();
   operating.paint();
 }
-function leave() {
+function leave(resumeMouse = false) {
   if (!operating) return;
   finishInput();
   operating = null;
+  if (terminalDrag && canvas.hasPointerCapture(terminalDrag.id))
+    canvas.releasePointerCapture(terminalDrag.id);
   terminalDrag = null;
+  lookDrag = null;
   player.copy(returnPosition);
   renderer.inspect(false);
   camera.position.copy(player);
   camera.rotation.set(pitch, yaw, 0, 'YXZ');
   document.body.classList.remove('operating', 'dragging');
+  canvas.style.cursor = 'crosshair';
   clearMovement();
+  canvas.focus({ preventScroll: true });
   updateCaptureHint();
+  if (resumeMouse) void capture();
 }
 function updateCaptureHint() {
   if (operating) return;
@@ -201,7 +207,7 @@ function dropCrate() {
 function use(object?: typeof nearest) {
   registrar?.stamp();
   if (operating) {
-    if (!operating.activeField) leave();
+    if (!operating.activeField) leave(true);
     return;
   }
   if (carried) {
@@ -495,8 +501,8 @@ async function boot() {
         (
           {
             username: 'Nome de usuário',
-            password: 'Senha fictícia',
-            confirm: 'Confirme a senha fictícia',
+            password: 'Senha',
+            confirm: 'Confirme a senha',
             search: 'Pesquisa por nome',
             date: 'Data do registro',
             note: 'Observação do registro',
@@ -619,9 +625,9 @@ window.addEventListener('keydown', (e) => {
       e.preventDefault();
       operating.next(-1);
     }
-    if (e.code === 'KeyE') {
+    if (e.code === 'KeyE' && !e.repeat) {
       e.preventDefault();
-      leave();
+      leave(true);
     }
     return;
   }
@@ -813,7 +819,7 @@ for (const event of ['pointerup', 'pointercancel'])
     $('stick').querySelector('i')!.setAttribute('style', '');
   });
 $('touch-use').addEventListener('click', () => use());
-$('touch-exit').addEventListener('click', leave);
+$('touch-exit').addEventListener('click', () => leave(true));
 $<HTMLInputElement>('import-file').addEventListener('change', async (e) => {
   const element = e.target as HTMLInputElement,
     file = element.files?.[0];
