@@ -517,6 +517,7 @@ async function boot() {
   });
   logoutHandle = world.box(0.22, 0.28, 0.12, 20.9, 1.23, -23.52, 'rust');
   world.plaque(['DESENERGIZAR'], 1, 0.19, 20.9, 0.82, -23.59, 0, '#778772', '#26372b');
+  world.optimizeStatic([logoutHandle]);
   archive.onChange = syncWorld;
   syncWorld();
   camera.position.copy(player);
@@ -536,7 +537,12 @@ async function boot() {
         gate: world.gateLift,
         storageAvailable: archive.storageAvailable,
         syncPercent: terminals.find((t) => t.kind === 'sync')!.syncing,
+        batchedDraws: world.batchedDraws,
       }),
+      project: (x: number, y: number, z: number) => {
+        const p = new T.Vector3(x, y, z).project(camera);
+        return { x: ((p.x + 1) * innerWidth) / 2, y: ((1 - p.y) * innerHeight) / 2 };
+      },
       targets: () =>
         operating?.targets.map((t) => {
           const point = new T.Vector3(

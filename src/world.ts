@@ -1,4 +1,5 @@
 import * as T from 'three';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import type { Archive, Log } from './state';
 
 export const ROOMS = [
@@ -75,6 +76,7 @@ export interface Mount {
 }
 type Rect = { x: number; z: number; w: number; d: number };
 export class Installation {
+  batchedDraws = 0;
   scene = new T.Scene();
   colliders: Rect[] = [];
   mounts: Mount[] = [];
@@ -939,6 +941,42 @@ export class Installation {
   }
   printReceipt() {
     this.receipt.visible = true;
+  }
+  optimizeStatic(excluded: T.Object3D[]) {
+    const exceptions = new Set([this.receipt, ...this.statisticBars, ...excluded]);
+    // Keep moving groups separate. Merge boxes in their parent's coordinates,
+    // preserving the independent screen planes and collision rectangles.
+    for (const parent of [this.scene, this.gate, this.rotor, ...this.mounts.map((m) => m.group)]) {
+      const groups = new Map<T.Material, T.Mesh[]>();
+      for (const child of [...parent.children]) {
+        if (
+          !(child instanceof T.Mesh) ||
+          !(child.geometry instanceof T.BoxGeometry) ||
+          Array.isArray(child.material) ||
+          exceptions.has(child)
+        )
+          continue;
+        const meshes = groups.get(child.material) || [];
+        meshes.push(child);
+        groups.set(child.material, meshes);
+      }
+      for (const [material, meshes] of groups) {
+        if (meshes.length < 2) continue;
+        const geometries = meshes.map((mesh) => {
+          mesh.updateMatrix();
+          return mesh.geometry.clone().applyMatrix4(mesh.matrix);
+        });
+        const geometry = mergeGeometries(geometries);
+        geometries.forEach((g) => g.dispose());
+        if (!geometry) continue;
+        parent.add(new T.Mesh(geometry, material));
+        meshes.forEach((mesh) => {
+          parent.remove(mesh);
+          mesh.geometry.dispose();
+        });
+        this.batchedDraws += meshes.length - 1;
+      }
+    }
   }
   sector(x: number, z: number) {
     return (

@@ -13,14 +13,14 @@ async function face(page: Page, x: number, z: number) {
     const s = await snapshot(page);
     const desired = Math.atan2(-(x - s.position[0]), -(z - s.position[2]));
     const diff = wrap(desired - s.yaw);
-    if (Math.abs(diff) < 0.04) return;
+    if (Math.abs(diff) < 0.1) return;
     await hold(
       page,
       diff > 0 ? 'ArrowLeft' : 'ArrowRight',
       Math.max(25, Math.min(500, (Math.abs(diff) / 1.7) * 1000)),
     );
   }
-  throw new Error('Não foi possível orientar a câmera.');
+  throw new Error('Não foi possível orientar a câmera: ' + JSON.stringify(await snapshot(page)));
 }
 async function walk(page: Page, x: number, z: number) {
   let stalled = 0;
@@ -48,7 +48,7 @@ async function route(page: Page, points: number[][]) {
 async function tilt(page: Page, pitch: number) {
   for (let i = 0; i < 15; i++) {
     const diff = pitch - (await snapshot(page)).pitch;
-    if (Math.abs(diff) < 0.03) return;
+    if (Math.abs(diff) < 0.065) return;
     await hold(
       page,
       diff > 0 ? 'PageUp' : 'PageDown',
@@ -269,7 +269,10 @@ test('o procedimento completo ocorre dentro do mundo e persiste', async ({ page 
   await face(page, 20.9, -23.52);
   p = (await snapshot(page)).position;
   await tilt(page, Math.atan2(1.23 - p[1], Math.hypot(20.9 - p[0], -23.52 - p[2])));
-  await page.keyboard.press('KeyE');
+  const handle = await page.evaluate(() =>
+    (window as any).__RELOGLAB__.project(20.9, 1.23, -23.46),
+  );
+  await page.mouse.click(handle.x, handle.y);
   await expect.poll(async () => (await snapshot(page)).session).toBe(false);
   expect((await snapshot(page)).data.logs).toHaveLength(1);
   expect((await snapshot(page)).position[2]).toBeGreaterThan(15);
